@@ -141,9 +141,13 @@ class UserLogin:
         ff.destroy()
         self.title.grid_forget()
 
-    def userdriver(self):
+    def userdriverotp(self):
         pass
-    
+        #display otp to user
+        #save otp to driver db
+        #take otp from driver
+        #delete otp if match
+        #return true if match
     def page1(self):
         global ff
         ff=Frame(window)
