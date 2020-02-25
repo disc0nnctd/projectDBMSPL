@@ -140,12 +140,45 @@ class UserLogin:
     def suicide(self):
         ff.destroy()
         self.title.grid_forget()
+
+    def userdriver(self):
+        pass
+    
     def page1(self):
         global ff
         ff=Frame(window)
         self.maketitle("Welcome %s"%self.user.get())
         self.title.grid()
 
+        locations=[]
+        #where from (dropdown)
+        #where to (dropdown)
+        
+        #class (dropdown)
+        #calculatedistance(label)
+        #price
+        #store time
+        #next page
+        
+
         ff.grid()
+    def page2(self):
+        pass
+        #looking for ride
+        #ride found
+
+        #fetch driver details
+
+        #get otp
+        #wait for driver to enter otp to start ride
+        #next page
+    def page3(self):
+        pass
+        #ride active
+        #reached location
+        #get otp
+        #driver enter otp
+        #rate the driver (radio button)
+    
 a=UserLogin()
 a.generate1()
