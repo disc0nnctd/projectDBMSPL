@@ -102,8 +102,9 @@ class UserLogin:
                         invalidOTP.grid_forget()
                         invalidN.grid_forget()
                         self.totp=randint(1000, 9999)####
-                        if len(phn.get())==10 and phn.get().isdigit():
-                            dt = db.user.find_one({'phone': int(phn.get())})
+                        ph=phn.get()
+                        if len(ph)==10 and ph.isdigit() and not ph.startswith('0'):
+                            dt = db.user.find_one({'phone': int(ph)})
                             if not dt:
                                 print(self.totp)
                                 tempframe.grid(padx=5, columnspan=3)
@@ -170,6 +171,18 @@ class UserLogin:
         ff=Frame(window)
         self.maketitle("Welcome %s!"%self.user.get())
         self.title.grid()
+
+        timenow=datetime.now()
+        self.date=str(timenow.date())
+        self.time=timenow.time().strftime("%H:%M:%S")
+        self.wherefrom=StringVar()
+        self.src=StringVar()
+        self.dest=StringVar()
+        self.type=StringVar()
+        
+        self.dist=DoubleVar()
+        self.price=DoubleVar()
+        baseprice=40
         
         #-------MessageLabels--------
         pleaseselectsrcdest= Label(ff, text="Please select a source and adestionation!", fg='red')
@@ -179,7 +192,7 @@ class UserLogin:
         
         
         #-------MessageLabels--------
-
+                
         def delmessagelabels():
             pleaseselectsrcdest.grid_forget()
             locationscantbesame.grid_forget()
@@ -188,23 +201,35 @@ class UserLogin:
         def disableoptions():
             srcmenu.configure(state="disabled")
             destmenu.configure(state="disabled")
+            subbutton.configure(state="disabled")
+            
         def getDistance(a,b):
-            la = readFromDB(a)
-            lb = readFromDB(b)
-            print("distance is %.01f km"%great_circle(la, lb).km)
-        
+            la = readLocFromDB(a)
+            lb = readLocFromDB(b)
+            #print("distance is %.01f km"%great_circle(la, lb).km)
+            return great_circle(la, lb).km
+            
         def readLocFromDB(name):
-            x=loc.find_one({"name":name})
-            print(x)
-            lat=x['lat']
-            lng=x['lng']
-            return (lat, lng)
+            tmp=loc.find_one({"name":name})
+            p=tmp['lat']
+            q=tmp['lng']
+            return (p, q)
         
         def loadLocsFromDB():
             y=loc.find({}, {"name":1, "_id":0}) #get all "name" from collection, exclude "_id"
             locations=[j['name'] for j in y]
             return locations
         
+        def updateprice(useless):
+            a=self.src.get()
+            b=self.dest.get()
+            if a and b:
+                dista=getDistance(a, b)
+                self.dist.set(round(dista, 2))
+                self.price.set(round(baseprice+(dista*25), 2))
+        
+        def uploadSearch(s, d):
+            pass
         def submitButton():
             delmessagelabels()
             s=self.src.get()
@@ -217,31 +242,25 @@ class UserLogin:
                     locationscantbesame.grid()
             else:
                 pleaseselectsrcdest.grid()
-                
-                
         
-        timenow=datetime.now()
-        self.date=str(timenow.date())
-        self.time=timenow.time().strftime("%H:%M:%S")
+        
         locsavl=loadLocsFromDB()
-
-        self.wherefrom=StringVar()
-        
-        self.src=StringVar()
-        self.dest=StringVar()
-        self.dist=0.0
-        self.type=StringVar()
-
-
         Label(ff, text="Source", font=("Calibri", 13)).grid(pady=5)
-        srcmenu = OptionMenu(ff, self.src, *locsavl)
+        srcmenu = OptionMenu(ff, self.src, *locsavl, command=updateprice)
         srcmenu.grid() #unpacks locations list
         
         Label(ff, text="Destination", font=("Calibri", 13)).grid(pady=5)
-        destmenu=OptionMenu(ff, self.dest, *locsavl)
+        destmenu=OptionMenu(ff, self.dest, *locsavl, command=updateprice)
         destmenu.grid() #unpacks locations list
 
-        Button(ff, text="Submit", command=submitButton).grid(pady=5)
+        Label(ff, text="Distance(KM)", font=("Calibri", 13)).grid(pady=5)
+        distancebox=Label(ff, textvariable=self.dist, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
+
+        Label(ff, text="Price(Rupees)", font=("Calibri", 13)).grid(pady=5)
+        pricebox=Label(ff, textvariable=self.price, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
+
+        subbutton=Button(ff, text="Submit", command=submitButton)
+        subbutton.grid(pady=5)
         
         
         
