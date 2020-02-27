@@ -255,16 +255,12 @@ class UserLogin:
         #store time
         #suicide()
         #next page
-        
-
         ff.grid()
     def page2(self):
         pass
         #looking for ride
         #ride found
-
         #fetch driver details
-        
         #get otp
         #wait for driver to enter otp to start ride
         #suicide()
