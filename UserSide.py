@@ -7,13 +7,14 @@ from random import randint
 from datetime import datetime
 from geopy.distance import great_circle
 
+
 #great_circle(loc1, loc2).km distance
 
 constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWrites=true&w=majority'
 
 client = MongoClient(constring)
 db=client.data
-
+#db=client.testing
 loc=db.location
 vehicles=db.vehicle
 #db.user.create_index('phone')
@@ -41,6 +42,7 @@ class UserLogin:
             self.pwd=StringVar()
             self.authsuccess=False
             self.phone=None
+            
             userEntry=Entry(ff, textvariable=self.user, width=30)
             passEntry=Entry(ff, textvariable=self.pwd, width=30)
             loginbutton=Button(ff, text="Login", height="2", width="15")
@@ -175,7 +177,7 @@ class UserLogin:
 
     def page1(self):
         self.makeff("Welcome %s!"%self.user.get())
-
+        
         timenow=datetime.now()
         self.date=str(timenow.date())
         self.time=timenow.time().strftime("%H:%M:%S")
@@ -187,7 +189,7 @@ class UserLogin:
         
         self.dist=DoubleVar()
         self.price=DoubleVar()
-        baseprice=40
+        baseprice=40        
         
         #-------MessageLabels--------
         pleaseselectsrcdest= Label(ff, text="Please select a source and adestionation!", fg='red')
@@ -205,7 +207,7 @@ class UserLogin:
             srcmenu.configure(state="disabled")
             destmenu.configure(state="disabled")
             subbutton.configure(state="disabled")
-            destmenu.configure(state="disabled")
+            vehmenu.configure(state="disabled")
             
         def getDistance(a,b):
             la = readLocFromDB(a)
@@ -233,9 +235,14 @@ class UserLogin:
             y=vehicles.find({}, {"name":1,"seats":1, "_id":0}) #get all "name", "seats" from collection, exclude "_id"
             typs={j['name']:j['seats'] for j in y}
             return typs
+
+        def settype():
+            getoption=self.typeoptions.item(self.typeoptions.focus())['values'][0]
+            #print(getoption)
+            self.type.set(getoption)
+            updateprice()
         
-        
-        def updateprice(uselessparameter):
+        def updateprice(): 
             forgetmessagelabels()
             a=self.src.get()
             b=self.dest.get()
@@ -253,17 +260,19 @@ class UserLogin:
                     if x:
                         prce=readTypeFromDB(x)
                         self.price.set(round(prce+baseprice+(dista*25), 2))
-        def uploadSearch(s, d):
+        def uploadSearch(s, d, t):
             pass
         
         def submitButton():
             forgetmessagelabels()
             s=self.src.get()
             d=self.dest.get()
+            t=self.type.get()
             if(s and d):
                 if(s!=d):
                     disableoptions()
                     lookingforaride.grid()
+                    uploadSearch(s, d, t)
                 else: # dont need to put this since the submit button gets disabled when same locations set
                     locationscantbesame.grid()
             else:
@@ -272,19 +281,30 @@ class UserLogin:
         
         locsavl=loadLocsFromDB() #list of names of locations
 
-        types=loadTypesFromDB() # {name:seats}
-        
+        types=loadTypesFromDB() # {name:seats} ------------need to load both in selection menu--------------------------
+                                                
         Label(ff, text="Source", font=("Calibri", 13)).grid(pady=5)
-        srcmenu = OptionMenu(ff, self.src, *locsavl, command=updateprice) # * unpacks locations list
+        srcmenu = OptionMenu(ff, self.src, *locsavl, command=lambda _:updateprice()) # * unpacks locations list  #lambda _ becuase optionmenu puts an argument in command
         srcmenu.grid()
         
         Label(ff, text="Destination", font=("Calibri", 13)).grid(pady=5)
-        destmenu=OptionMenu(ff, self.dest, *locsavl, command=updateprice)
+        destmenu=OptionMenu(ff, self.dest, *locsavl, command=lambda _:updateprice()) #lambda _ becuase optionmenu puts an argument in command
         destmenu.grid()
-        
-        Label(ff, text="Class", font=("Calibri", 13)).grid(pady=5)
-        vehmenu=OptionMenu(ff, self.type, *types, command=updateprice)
-        vehmenu.grid() 
+
+        ###################TreeView###############################################
+        self.typeoptions=ttk.Treeview(ff, columns=("Type", "Seats"), show="headings", height=5)
+        self.typeoptions.heading('#1', text='Type')
+        self.typeoptions.heading('#2', text='Seats')
+        self.typeoptions.column("Type", width=70)
+        self.typeoptions.column("Seats", width=50)
+        for i in types:
+            self.typeoptions.insert("", 'end', values=(i, types[i]))
+        self.typeoptions.bind("<<TreeviewSelect>>", lambda _:settype())  #lambda _ becuase bind puts an argument in command
+        self.typeoptions.grid()
+        ###########################################################################
+        #Label(ff, text="Class", font=("Calibri", 13)).grid(pady=5)
+        #vehmenu=OptionMenu(ff, self.type, *types, command=lambda _:updateprice())
+        #vehmenu.grid() 
 
         Label(ff, text="Distance(KM)", font=("Calibri", 13)).grid(pady=5)
         distancebox=Label(ff, textvariable=self.dist, width=5, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
