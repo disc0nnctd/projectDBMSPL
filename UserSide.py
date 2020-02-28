@@ -1,8 +1,10 @@
 from tkinter import *
+from tkinter import ttk
 from pymongo import MongoClient
 from random import randint
 from datetime import datetime
 from geopy.distance import great_circle
+
 #great_circle(loc1, loc2).km distance
 
 constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWrites=true&w=majority'
@@ -11,7 +13,7 @@ client = MongoClient(constring)
 db=client.data
 
 loc=db.location
-
+vehicles=db.vehicle
 #db.user.create_index('phone')
 
 res="450x600"
@@ -63,7 +65,6 @@ class UserLogin:
                 loginbutton.configure(state=action)
                 userEntry.configure(state=action)
                 passEntry.configure(state=action)
-                
                 
             def login():
                 forgetmessages()
@@ -179,6 +180,7 @@ class UserLogin:
         self.wherefrom=StringVar()
         self.src=StringVar()
         self.dest=StringVar()
+
         self.type=StringVar()
         
         self.dist=DoubleVar()
@@ -201,6 +203,7 @@ class UserLogin:
             srcmenu.configure(state="disabled")
             destmenu.configure(state="disabled")
             subbutton.configure(state="disabled")
+            destmenu.configure(state="disabled")
             
         def getDistance(a,b):
             la = readLocFromDB(a)
@@ -218,8 +221,19 @@ class UserLogin:
             y=loc.find({}, {"name":1, "_id":0}) #get all "name" from collection, exclude "_id"
             locations=[j['name'] for j in y]
             return locations
+
+        def readTypeFromDB(name):
+            tmp=vehicles.find_one({"name":name}, {'price':1, "_id":0}) #get "price" count from given name, exclude "_id"
+            t=tmp['price']
+            return t
         
-        def updateprice(useless):
+        def loadTypesFromDB():
+            y=vehicles.find({}, {"name":1,"seats":1, "_id":0}) #get all "name", "seats" from collection, exclude "_id"
+            typs={j['name']:j['seats'] for j in y}
+            return typs
+        
+        
+        def updateprice(uselessparameter):
             forgetmessagelabels()
             a=self.src.get()
             b=self.dest.get()
@@ -233,8 +247,10 @@ class UserLogin:
                     subbutton.configure(state="normal")
                     dista=getDistance(a, b)
                     self.dist.set(round(dista, 2))
-                    self.price.set(round(baseprice+(dista*25), 2))
-        
+                    x=self.type.get()
+                    if x:
+                        prce=readTypeFromDB(x)
+                        self.price.set(round(prce+baseprice+(dista*25), 2))
         def uploadSearch(s, d):
             pass
         
@@ -246,20 +262,27 @@ class UserLogin:
                 if(s!=d):
                     disableoptions()
                     lookingforaride.grid()
-                else: #dont need to put this since the submit button gets disabled when same locations set
+                else: # dont need to put this since the submit button gets disabled when same locations set
                     locationscantbesame.grid()
             else:
                 pleaseselectsrcdest.grid()
         
         
-        locsavl=loadLocsFromDB()
+        locsavl=loadLocsFromDB() #list of names of locations
+
+        types=loadTypesFromDB() # {name:seats}
+        
         Label(ff, text="Source", font=("Calibri", 13)).grid(pady=5)
-        srcmenu = OptionMenu(ff, self.src, *locsavl, command=updateprice)
-        srcmenu.grid() #unpacks locations list
+        srcmenu = OptionMenu(ff, self.src, *locsavl, command=updateprice) # * unpacks locations list
+        srcmenu.grid()
         
         Label(ff, text="Destination", font=("Calibri", 13)).grid(pady=5)
         destmenu=OptionMenu(ff, self.dest, *locsavl, command=updateprice)
-        destmenu.grid() #unpacks locations list
+        destmenu.grid()
+        
+        Label(ff, text="Class", font=("Calibri", 13)).grid(pady=5)
+        vehmenu=OptionMenu(ff, self.type, *types, command=updateprice)
+        vehmenu.grid() 
 
         Label(ff, text="Distance(KM)", font=("Calibri", 13)).grid(pady=5)
         distancebox=Label(ff, textvariable=self.dist, width=5, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
@@ -283,6 +306,7 @@ class UserLogin:
         #suicide()
         #next page
         ff.grid()
+
     def page2(self):
         pass
         #looking for ride

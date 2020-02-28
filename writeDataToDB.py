@@ -31,11 +31,16 @@ def getDistance(a,b):
     lb = readFromDB(b)
     print("distance is %.01f km"%great_circle(la, lb).km)
 def loadLocsFromDB():
-    global y
     y=loc.find({}, {"name":1, "_id":0})
+    locations=[j['name'] for j in y]
+    return locations
 
 #   vehicl.create_index('name')
-def writeClass(name, seats, price):
+def writeType(name, seats, price):
     vehicl.insert_one({"name":name, "seats":seats, "price":price})
-    
+
+def loadTypesFromDB():
+    y=vehicl.find({}, {"name":1,"seats":1, "_id":0}) #get all "name", "seats" from collection, exclude "_id"
+    typs={j['name']:j['seats'] for j in y}
+    return typs
     
