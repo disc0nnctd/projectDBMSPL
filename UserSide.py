@@ -8,9 +8,9 @@ from geopy.distance import great_circle
 constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWrites=true&w=majority'
 
 client = MongoClient(constring)
-db=client.users
+db=client.data
 
-loc=client.locations.location
+loc=db.location
 
 #db.user.create_index('phone')
 
@@ -24,6 +24,11 @@ ff=Frame(window)
 class UserLogin:
     def maketitle(self, text):
         self.title=Label(window, text=text, bg="gray", width="38", height="2", font=("Calibri", 17))
+    def makeff(self, title):
+        global ff
+        ff=Frame(window)
+        self.maketitle("Welcome %s!"%self.user.get())
+        self.title.grid()
     def suicide(self):
         ff.destroy()
         self.title.grid_forget()
@@ -128,7 +133,7 @@ class UserLogin:
                         else:
                             invalidOTP.grid()
                     Label(tempframe, text="OTP", font=("Calibri")).grid(row=0, column=0)
-                    Entry(tempframe, textvariable=otp).grid(row=0, column=1)
+                    Entry(tempframe, textvariable=otp, width=5).grid(row=0, column=1)
                     Button(tempframe, text="Submit", command=checkotp).grid(row=0, column=2)
                     Label(tempwin, text="Phone Number", font=("Calibri")).grid(row=0, column=0, padx=5)
                     Entry(tempwin, textvariable=phn).grid(row=0, column=1)
@@ -166,11 +171,7 @@ class UserLogin:
 
 
     def page1(self):
-        global ff
-                
-        ff=Frame(window)
-        self.maketitle("Welcome %s!"%self.user.get())
-        self.title.grid()
+        self.makeff("Welcome %s!"%self.user.get())
 
         timenow=datetime.now()
         self.date=str(timenow.date())
@@ -189,11 +190,9 @@ class UserLogin:
         locationscantbesame= Label(ff, text="Source and Destination cannot be same!", fg='red')
         lookingforaride=Label(ff, text="Looking for a ride....")
         #somelabel= Label(ff, text="somemessage", fg='red')
-        
-        
         #-------MessageLabels--------
                 
-        def delmessagelabels():
+        def forgetmessagelabels():
             pleaseselectsrcdest.grid_forget()
             locationscantbesame.grid_forget()
             lookingforaride.grid_forget()
@@ -221,24 +220,33 @@ class UserLogin:
             return locations
         
         def updateprice(useless):
+            forgetmessagelabels()
             a=self.src.get()
             b=self.dest.get()
             if a and b:
-                dista=getDistance(a, b)
-                self.dist.set(round(dista, 2))
-                self.price.set(round(baseprice+(dista*25), 2))
+                if(a==b):
+                    locationscantbesame.grid()
+                    subbutton.configure(state="disabled")
+                    self.dist.set(0)
+                    self.price.set(0)
+                else:
+                    subbutton.configure(state="normal")
+                    dista=getDistance(a, b)
+                    self.dist.set(round(dista, 2))
+                    self.price.set(round(baseprice+(dista*25), 2))
         
         def uploadSearch(s, d):
             pass
+        
         def submitButton():
-            delmessagelabels()
+            forgetmessagelabels()
             s=self.src.get()
             d=self.dest.get()
             if(s and d):
                 if(s!=d):
                     disableoptions()
                     lookingforaride.grid()
-                else:
+                else: #dont need to put this since the submit button gets disabled when same locations set
                     locationscantbesame.grid()
             else:
                 pleaseselectsrcdest.grid()
@@ -254,10 +262,10 @@ class UserLogin:
         destmenu.grid() #unpacks locations list
 
         Label(ff, text="Distance(KM)", font=("Calibri", 13)).grid(pady=5)
-        distancebox=Label(ff, textvariable=self.dist, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
+        distancebox=Label(ff, textvariable=self.dist, width=5, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
 
         Label(ff, text="Price(Rupees)", font=("Calibri", 13)).grid(pady=5)
-        pricebox=Label(ff, textvariable=self.price, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
+        pricebox=Label(ff, textvariable=self.price, width=5, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
 
         subbutton=Button(ff, text="Submit", command=submitButton)
         subbutton.grid(pady=5)
