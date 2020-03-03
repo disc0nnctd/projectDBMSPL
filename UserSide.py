@@ -309,9 +309,6 @@ class UserLogin:
                                                 
         Label(ff, text="Source", font=("Calibri", 13)).grid(pady=5)
 
-        def callupdateprice(_):
-            updateprice()
-            
         srcmenu = OptionMenu(ff, self.src, *locsavl, command=lambda _:updateprice()) # * unpacks locations list  #lambda _ becuase optionmenu puts an argument in command
         srcmenu.grid()
         
