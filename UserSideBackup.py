@@ -14,7 +14,6 @@ constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWri
 
 client = MongoClient(constring)
 db=client.data
-
 #db=client.testing
 loc=db.location
 vehicles=db.vehicle
@@ -26,9 +25,6 @@ window.geometry(res)
 window.resizable(width=False, height=False)
 window.title("notUber")
 ff=Frame(window)
-
-def nothing():
-    pass
 
 class UserLogin:
     def maketitle(self, text):
@@ -196,9 +192,8 @@ class UserLogin:
         baseprice=40        
         
         #-------MessageLabels--------
-        pleaseselectsrcdest= Label(ff, text="Please select a source and a destionation!", fg='red')
+        pleaseselectsrcdest= Label(ff, text="Please select a source and adestionation!", fg='red')
         locationscantbesame= Label(ff, text="Source and Destination cannot be same!", fg='red')
-        selecttype=Label(ff, text="Please select a type of vehicle")
         lookingforaride=Label(ff, text="Looking for a ride....")
         #somelabel= Label(ff, text="somemessage", fg='red')
         #-------MessageLabels--------
@@ -207,15 +202,13 @@ class UserLogin:
             pleaseselectsrcdest.grid_forget()
             locationscantbesame.grid_forget()
             lookingforaride.grid_forget()
-            selecttype.grid_forget()
 
         def disableoptions():
             srcmenu.configure(state="disabled")
             destmenu.configure(state="disabled")
             subbutton.configure(state="disabled")
-            disableTree()
-            #vehmenu.configure(state="disabled")
-
+            vehmenu.configure(state="disabled")
+            
         def getDistance(a,b):
             la = readLocFromDB(a)
             lb = readLocFromDB(b)
@@ -243,21 +236,8 @@ class UserLogin:
             typs={j['name']:j['seats'] for j in y}
             return typs
 
-        def handle_click(event):                                             
-            if typeoptions.identify_region(event.x, event.y) == "separator": #used to prevent resizing of Treeview columns
-                return "break"
-        def enableTree():
-            typeoptions.bind("<<TreeviewSelect>>", lambda _:settype())  #lambda _ becuase bind puts an argument in command
-            typeoptions.bind("<Button-1>", handle_click) #used to prevent resizing of Treeview columns
-            
-        def disableTree():
-            Label(ff, text=self.type.get(), font=("Calibri", 13), borderwidth=2, relief="sunken", bg="white").grid(row=5)
-            typeoptions.bind("<<TreeviewSelect>>", lambda _: nothing())  #makes it stop working after submission 
-            typeoptions.destroy()
-            
-            
         def settype():
-            getoption=typeoptions.item(typeoptions.focus())['values'][0]
+            getoption=self.typeoptions.item(self.typeoptions.focus())['values'][0]
             #print(getoption)
             self.type.set(getoption)
             updateprice()
@@ -290,13 +270,9 @@ class UserLogin:
             t=self.type.get()
             if(s and d):
                 if(s!=d):
-                    if t:
-                        disableoptions()
-                        #lookingforaride=Label(ff, text="Looking for %s ride...."%(self.type.get()))
-                        lookingforaride.grid()
-                        uploadSearch(s, d, t)
-                    else:
-                        selecttype.grid()
+                    disableoptions()
+                    lookingforaride.grid()
+                    uploadSearch(s, d, t)
                 else: # dont need to put this since the submit button gets disabled when same locations set
                     locationscantbesame.grid()
             else:
@@ -308,10 +284,6 @@ class UserLogin:
         types=loadTypesFromDB() # {name:seats} ------------need to load both in selection menu--------------------------
                                                 
         Label(ff, text="Source", font=("Calibri", 13)).grid(pady=5)
-
-        def callupdateprice(_):
-            updateprice()
-            
         srcmenu = OptionMenu(ff, self.src, *locsavl, command=lambda _:updateprice()) # * unpacks locations list  #lambda _ becuase optionmenu puts an argument in command
         srcmenu.grid()
         
@@ -319,17 +291,16 @@ class UserLogin:
         destmenu=OptionMenu(ff, self.dest, *locsavl, command=lambda _:updateprice()) #lambda _ becuase optionmenu puts an argument in command
         destmenu.grid()
 
-        Label(ff, text="Vehicle:", font=("Calibri", 13)).grid(pady=5)
-        ###################TreeView###############################################        
-        typeoptions=ttk.Treeview(ff, columns=("Type", "Seats"), show="headings", height=5)
-        typeoptions.heading('#1', text='Type')
-        typeoptions.heading('#2', text='Seats')
-        typeoptions.column("#1", width=70)
-        typeoptions.column("#2", width=50)
+        ###################TreeView###############################################
+        self.typeoptions=ttk.Treeview(ff, columns=("Type", "Seats"), show="headings", height=5)
+        self.typeoptions.heading('#1', text='Type')
+        self.typeoptions.heading('#2', text='Seats')
+        self.typeoptions.column("Type", width=70)
+        self.typeoptions.column("Seats", width=50)
         for i in types:
-            typeoptions.insert("", 'end', values=(i, types[i]))
-        enableTree()
-        typeoptions.grid()
+            self.typeoptions.insert("", 'end', values=(i, types[i]))
+        self.typeoptions.bind("<<TreeviewSelect>>", lambda _:settype())  #lambda _ becuase bind puts an argument in command
+        self.typeoptions.grid()
         ###########################################################################
         #Label(ff, text="Class", font=("Calibri", 13)).grid(pady=5)
         #vehmenu=OptionMenu(ff, self.type, *types, command=lambda _:updateprice())
