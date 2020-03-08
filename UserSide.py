@@ -1,14 +1,24 @@
 """https://github.com/disc0nnctd/projectDBMSPL.git"""
 
+"""pandas can be used to view data from the database
+import pandas as pd
+data = [data for data in db.colletionname.find()]
+df_inventory_data = pd.DataFrame(data)
+print(data)
+"""
+
+
 from tkinter import *
 from tkinter import ttk
 from pymongo import MongoClient
 from random import randint
 from datetime import datetime
+from time import sleep
 from geopy.distance import great_circle
 
-
 #great_circle(loc1, loc2).km distance
+
+now=datetime.now()
 
 constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWrites=true&w=majority'
 
@@ -36,7 +46,7 @@ class UserLogin:
     def makeff(self, title):
         global ff
         ff=Frame(window)
-        self.maketitle("Welcome %s!"%self.user.get())
+        self.maketitle(title)
         self.title.grid()
     def suicide(self):
         ff.destroy()
@@ -44,6 +54,9 @@ class UserLogin:
     def __init__(self):
             self.user=StringVar()
             self.pwd=StringVar()
+            self.username=''
+            #self.source=''
+            #self.destination=''
             self.authsuccess=False
             self.phone=None
             
@@ -83,9 +96,9 @@ class UserLogin:
                     if(dt):
                         if dt['password']==pd:
                             authenticatedstring.grid()
-                            #next window
+                            self.username=uname
                             self.authsuccess=True
-                            self.suicide()
+                            #next window
                             self.page1()
                         else:
                             invaliduserpass.grid()
@@ -170,18 +183,9 @@ class UserLogin:
                 ff.grid(pady=80)
             generate()
 
-    def userdriverotp(self):
-        pass
-        #display otp to user
-        #save otp to driver db
-        #take otp from driver
-        #delete otp if match
-        #return true if match
-
-
     def page1(self):
+        self.suicide()
         self.makeff("Welcome %s!"%self.user.get())
-        
         timenow=datetime.now()
         self.date=str(timenow.date())
         self.time=timenow.time().strftime("%H:%M:%S")
@@ -200,6 +204,7 @@ class UserLogin:
         locationscantbesame= Label(ff, text="Source and Destination cannot be same!", fg='red')
         selecttype=Label(ff, text="Please select a type of vehicle")
         lookingforaride=Label(ff, text="Looking for a ride....")
+        ridenotfound= Label(ff, text="Couldn't find you a ride! Try again later!")
         #somelabel= Label(ff, text="somemessage", fg='red')
         #-------MessageLabels--------
                 
@@ -208,6 +213,7 @@ class UserLogin:
             locationscantbesame.grid_forget()
             lookingforaride.grid_forget()
             selecttype.grid_forget()
+            ridenotfound.grid_forget()
 
         def disableoptions():
             srcmenu.configure(state="disabled")
@@ -215,7 +221,11 @@ class UserLogin:
             subbutton.configure(state="disabled")
             disableTree()
             #vehmenu.configure(state="disabled")
-
+        def enableoptions():
+            srcmenu.configure(state="normal")
+            destmenu.configure(state="normal")
+            subbutton.configure(state="normal")
+            enableTree()
         def getDistance(a,b):
             la = readLocFromDB(a)
             lb = readLocFromDB(b)
@@ -251,9 +261,10 @@ class UserLogin:
             typeoptions.bind("<Button-1>", handle_click) #used to prevent resizing of Treeview columns
             
         def disableTree():
-            Label(ff, text=self.type.get(), font=("Calibri", 13), borderwidth=2, relief="sunken", bg="white").grid(row=5)
+            vehlabel=Label(ff, text=self.type.get(), font=("Calibri", 13), borderwidth=2, relief="sunken", bg="white")
+            #vehlabel.grid(row=5)
             typeoptions.bind("<<TreeviewSelect>>", lambda _: nothing())  #makes it stop working after submission 
-            typeoptions.destroy()
+
             
             
         def settype():
@@ -281,7 +292,48 @@ class UserLogin:
                         prce=readTypeFromDB(x)
                         self.price.set(round(prce+baseprice+(dista*25), 2))
         def uploadSearch(s, d, t):
-            pass
+            now=datetime.now()
+            date=now.strftime("%Y-%m-%d")
+            time=now.strftime("%H:%M:%S")
+            foundRide=False
+            self.ridedetails={'from': s, 'to':d, 'time': time, 'date': date, 'type': t, 'user': self.username}
+            db.avlrides.insert_one(self.ridedetails)
+            db.avlrides.update_one(self.ridedetails, {"$set": {'driver':''}})
+            self.udriver=None
+            while not self.udriver:
+                a=db.avlrides.find_one(self.ridedetails)['driver']
+                if a:
+                    self.udriver=a
+                    break
+                    #load next page, otp and start ride
+
+                temptime=datetime.now()
+                diff=temptime-now #difference in seconds and miliseconds    
+                if diff.seconds>=90:
+                    forgetmessagelabels()
+                    enableoptions()
+                    ridenotfound.grid()
+                    break
+            if self.udriver:
+                self.suicide() #----------------------------------------------------------not working!!!!!
+                self.page2()
+        
+        """driversidefunction
+            def lookforaride():
+                loggedrides={} #will contain dictionaries identified by
+                now=datetime.now()
+                foundRide=False
+                x=None
+                ridez=[i for i in db.avlrides.find()] #{'from': s, 'to':d, 'time': time, 'date': date, 'type': t, 'user': username, 'driver':''}
+                #display all rides in treeview and ask the driver to pick one
+                #once the driver submits, add his name to the avlride
+                #if the driver picks the ride:
+                # toupdate= ridez[whateverdriverpicks]
+                # driverupdate = { "$set": { "driver": driver's id } }
+                # db.avlrides.update_one(toupdate, driverupdate)
+                #driver is asked to enter OTP(otp is fetched from db.activerides['sOTP']) #start otp
+                # if otp is correct : db.activerides.update_one(self.ridedetails, {"$set":{'ridestatus':'active'})
+        """
         
         def submitButton():
             forgetmessagelabels()
@@ -292,9 +344,9 @@ class UserLogin:
                 if(s!=d):
                     if t:
                         disableoptions()
-                        #lookingforaride=Label(ff, text="Looking for %s ride...."%(self.type.get()))
-                        lookingforaride.grid()
+                        lookingforaride.grid() #-- - -- - - -not working!!
                         uploadSearch(s, d, t)
+                        
                     else:
                         selecttype.grid()
                 else: # dont need to put this since the submit button gets disabled when same locations set
@@ -305,10 +357,10 @@ class UserLogin:
         
         locsavl=loadLocsFromDB() #list of names of locations
 
-        types=loadTypesFromDB() # {name:seats} ------------need to load both in selection menu--------------------------
+        types=loadTypesFromDB() # {name:seats}
                                                 
         Label(ff, text="Source", font=("Calibri", 13)).grid(pady=5)
-
+    
         srcmenu = OptionMenu(ff, self.src, *locsavl, command=lambda _:updateprice()) # * unpacks locations list  #lambda _ becuase optionmenu puts an argument in command
         srcmenu.grid()
         
@@ -328,9 +380,6 @@ class UserLogin:
         enableTree()
         typeoptions.grid()
         ###########################################################################
-        #Label(ff, text="Class", font=("Calibri", 13)).grid(pady=5)
-        #vehmenu=OptionMenu(ff, self.type, *types, command=lambda _:updateprice())
-        #vehmenu.grid() 
 
         Label(ff, text="Distance(KM)", font=("Calibri", 13)).grid(pady=5)
         distancebox=Label(ff, textvariable=self.dist, width=5, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
@@ -339,31 +388,42 @@ class UserLogin:
         pricebox=Label(ff, textvariable=self.price, width=5, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
 
         subbutton=Button(ff, text="Submit", command=submitButton)
+        
         subbutton.grid(pady=5)
         
-        
-        
-        #where from (dropdown)
-        #self.frommenu=
-        #where to (dropdown)
-        
-        #class (dropdown)
-        #calculatedistance(label)
-        #price
-        #store time
-        #suicide()
-        #next page
         ff.grid()
 
+
     def page2(self):
-        pass
-        #looking for ride
-        #ride found
+        self.suicide()
+        #driver is self.udriver
+        driver=db.driver.find_one({'_id': self.udriver})
+        self.makeff("Ride details")
+        print(driver)
+        db.activerides.insert_one(self.ridedetails)
+        db.activerides.update_one(self.ridedetails, {"$set": {'driver':driver['_id']}})
+        db.avlrides.delete_one(self.ridedetails)
+        #
+        #
+        Label(ff, text="ID: %s"%driver['_id'], font=("Calibri", 13)).grid(pady=5)
+        Label(ff, text="Contact: %s"%driver['phone'], font=("Calibri", 13)).grid(pady=5)
+
+        sotp=randint(1000, 9999)
+        db.activerides.update_one(self.ridedetails, {"$set":{'sotp':sotp}})
+
+        Label(ff, text="OTP: %s"%sotp, font=("Calibri", 13)).grid(pady=5)
+        
+##        for change in db.activerides.watch():
+##            if db.activerides.findone(self.ridedetails)['status'] == 'active':
+##                break
+##                self.page3()
         #fetch driver details
         #get otp
         #wait for driver to enter otp to start ride
         #suicide()
         #next page
+        ff.grid()
+        
     def page3(self):
         pass
         #ride active
