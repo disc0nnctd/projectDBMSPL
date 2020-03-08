@@ -291,33 +291,48 @@ class UserLogin:
                     if x:
                         prce=readTypeFromDB(x)
                         self.price.set(round(prce+baseprice+(dista*25), 2))
+        def genID():
+            p=True
+            q=True
+            r=True
+            while p or q or r:
+                genid=randint(100,999)
+                p=db.activeride.find_one({'_id':genid})
+                q=db.pastrides.find_one({'_id':genid})
+                r=db.avl.find_one({'_id':genid})
+            return genid
+        
+        def driverUpdate():
+            a=db.avlrides.find_one(self.ridedetails)['driver']
+            if a:
+                self.udriver=a
+                self.page2()
+                return
+            else:
+                if self.timeout>0:
+                    self.timeout-=1
+                    #print(self.timeout)
+                    window.after(1000, driverUpdate)
+                else:
+                    forgetmessagelabels()
+                    db.avlrides.delete_one(self.ridedetails)
+                    enableoptions()
+                    ridenotfound.grid()
+        
         def uploadSearch(s, d, t):
+            lookingforaride.grid()
             now=datetime.now()
             date=now.strftime("%Y-%m-%d")
             time=now.strftime("%H:%M:%S")
             foundRide=False
-            self.ridedetails={'from': s, 'to':d, 'time': time, 'date': date, 'type': t, 'user': self.username}
+            self.ridedetails={'_id':genID(), 'from': s, 'to':d, 'time': time, 'date': date, 'type': t, 'user': self.username}
             db.avlrides.insert_one(self.ridedetails)
             db.avlrides.update_one(self.ridedetails, {"$set": {'driver':''}})
             self.udriver=None
-            while not self.udriver:
-                a=db.avlrides.find_one(self.ridedetails)['driver']
-                if a:
-                    self.udriver=a
-                    break
-                    #load next page, otp and start ride
-
-                temptime=datetime.now()
-                diff=temptime-now #difference in seconds and miliseconds    
-                if diff.seconds>=90:
-                    forgetmessagelabels()
-                    enableoptions()
-                    ridenotfound.grid()
-                    break
-            if self.udriver:
-                self.suicide() #----------------------------------------------------------not working!!!!!
-                self.page2()
-        
+            self.timeout=60
+            driverUpdate()
+                
+                
         """driversidefunction
             def lookforaride():
                 loggedrides={} #will contain dictionaries identified by
@@ -331,7 +346,7 @@ class UserLogin:
                 # toupdate= ridez[whateverdriverpicks]
                 # driverupdate = { "$set": { "driver": driver's id } }
                 # db.avlrides.update_one(toupdate, driverupdate)
-                #driver is asked to enter OTP(otp is fetched from db.activerides['sOTP']) #start otp
+                #driver is asked to enter OTP(otp is fetched from db.otps.find_one({'_id': pickedride['_id']})['sOTP'] #start otp
                 # if otp is correct : db.activerides.update_one(self.ridedetails, {"$set":{'ridestatus':'active'})
         """
         
@@ -344,7 +359,6 @@ class UserLogin:
                 if(s!=d):
                     if t:
                         disableoptions()
-                        lookingforaride.grid() #-- - -- - - -not working!!
                         uploadSearch(s, d, t)
                         
                     else:
@@ -395,35 +409,35 @@ class UserLogin:
 
 
     def page2(self):
+        def activateRide():
+            #print("checking active")
+            status=db.activerides.find_one(self.ridedetails)['status']
+            if status == 'active':
+                self.suicide()
+                self.page3()
+                return
+            window.after(1000, activateRide)
+
         self.suicide()
         #driver is self.udriver
         driver=db.driver.find_one({'_id': self.udriver})
         self.makeff("Ride details")
-        print(driver)
-        db.activerides.insert_one(self.ridedetails)
-        db.activerides.update_one(self.ridedetails, {"$set": {'driver':driver['_id']}})
+        
         db.avlrides.delete_one(self.ridedetails)
-        #
-        #
+        db.activerides.insert_one(self.ridedetails)
+        db.activerides.update_one(self.ridedetails, {"$set": {'driver':driver['_id'], 'status':''}})
+        
         Label(ff, text="ID: %s"%driver['_id'], font=("Calibri", 13)).grid(pady=5)
         Label(ff, text="Contact: %s"%driver['phone'], font=("Calibri", 13)).grid(pady=5)
 
         sotp=randint(1000, 9999)
-        db.activerides.update_one(self.ridedetails, {"$set":{'sotp':sotp}})
-
+        #db.activerides.update_one(self.ridedetails, {"$set":{'sotp':sotp}})
+        
+        db.otps.insert_one({'_id':self.ridedetails['_id'], 'sotp':sotp})
         Label(ff, text="OTP: %s"%sotp, font=("Calibri", 13)).grid(pady=5)
         
-##        for change in db.activerides.watch():
-##            if db.activerides.findone(self.ridedetails)['status'] == 'active':
-##                break
-##                self.page3()
-        #fetch driver details
-        #get otp
-        #wait for driver to enter otp to start ride
-        #suicide()
-        #next page
         ff.grid()
-        
+        activateRide()
     def page3(self):
         pass
         #ride active
@@ -432,5 +446,4 @@ class UserLogin:
         #driver enter otp
         #suicide()
         #rate the driver (radio button)
-    
-a=UserLogin()
+sa=UserLogin()
