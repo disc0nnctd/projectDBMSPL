@@ -411,7 +411,7 @@ class UserLogin:
 
     def page2(self):
         def activateRide(): #when driver updates status to active
-            status=db.activerides.find_one(self.ridedetails)['status']
+            status=db.otps.find_one({'_id': self.rideid})['status']
             if status == 'active':
                 ot.grid_forget()
                 activeride.grid()
@@ -420,7 +420,7 @@ class UserLogin:
             window.after(1000, activateRide)
         def checkComplete():  #to comfirm if ride is done
             status=db.otps.find_one(self.rideid)['status']
-            if status=='done':
+            if status=='end':
                 rotp=randint(1000, 9999)
                 Label(ff, text="End OTP: %s"%rotp, font=("Calibri", 13)).grid(pady=5)
                 db.otps.update_one({'_id':self.rideid}, {"$set":{'rotp':rotp}})
@@ -431,8 +431,9 @@ class UserLogin:
                     
         def endRide():
             status=db.otps.find_one(self.rideid)['status']
-            if status=='end':
+            if status=='done':
                 self.page3()
+                return
             window.after(1000, endRide)
             
         self.suicide()
@@ -444,7 +445,7 @@ class UserLogin:
         
         db.avlrides.delete_one(self.ridedetails)
         db.activerides.insert_one(self.ridedetails)
-        db.activerides.update_one(self.ridedetails, {"$set": {'driver':driver['_id'], 'status':''}})
+        db.activerides.update_one(self.ridedetails, {"$set": {'driver': self.udriver}})
         
         Label(ff, text="Driver ID: %s"%driver['_id'], font=("Calibri", 13)).grid(pady=100)
         Label(ff, text="Contact: %s"%driver['phone'], font=("Calibri", 13)).grid(pady=5)
@@ -477,10 +478,14 @@ class UserLogin:
                 rides=driver['rides'] + 1
                 newrating= (driver['rating'] + rating)/rides
                 db.driver.update_one({'_id':self.udriver}, {'$set':{'rating':newrating, 'rides':rides}})
+
+                db.activerides.delete_one({'_id': self.rideid})
+
+                db.pastrides.insert_one(self.ridedetails)
+                db.pastrides.update_one(self.ridedetails, {"$set": {'driver': self.udriver, 'rating': rating}})
             else:
                 pleaseselect.grid()
-        #give rating
-        #radio buttons
+        
         rateride= Label(ff, text= "Rate your ride", font=("Calibri", 13))
         rateride.grid(pady=100)
         rate=IntVar()
