@@ -8,6 +8,7 @@ constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWri
 client=MongoClient(constring)
 loc=client.data.location
 vehicl=client.data.vehicle
+driver=client.data.driver
 
 def writeToDB(id, name, lat, lng):
 ##    with open('coords.csv') as csv_file:
@@ -43,4 +44,7 @@ def loadTypesFromDB():
     y=vehicl.find({}, {"name":1,"seats":1, "_id":0}) #get all "name", "seats" from collection, exclude "_id"
     typs={j['name']:j['seats'] for j in y}
     return typs
-    
+
+def addDriver(name, password, vehicle, phone, rating, rides):
+    driver.insert_one({"_id":name,"password":password,"vehicle":vehicle,"phone":phone, "rating":rating, "rides":rides})
+
