@@ -336,7 +336,6 @@ class UserLogin:
                 
         """driversidefunction
             the driverside's treeview will always keep updating
-            if the driver accepts a ride his 'rides' count will increase by 1
             def lookforaride():
                 loggedrides={} #will contain dictionaries identified by
                 now=datetime.now()
@@ -447,7 +446,7 @@ class UserLogin:
         db.activerides.insert_one(self.ridedetails)
         db.activerides.update_one(self.ridedetails, {"$set": {'driver':driver['_id'], 'status':''}})
         
-        Label(ff, text="ID: %s"%driver['_id'], font=("Calibri", 13)).grid(pady=5)
+        Label(ff, text="Driver ID: %s"%driver['_id'], font=("Calibri", 13)).grid(pady=100)
         Label(ff, text="Contact: %s"%driver['phone'], font=("Calibri", 13)).grid(pady=5)
 
         sotp=randint(1000, 9999)
@@ -463,9 +462,36 @@ class UserLogin:
     def page3(self):
         self.suicide()
         self.makeff("Ride Complete")
+        pleaseselect=Label(ff, text= "Please select a rating!", font=("Calibri", 13))
+        
+        def submit():
+            rating=rate.get()
+            if rating != 0:
+                pleaseselect.grid_forget()
+                rateride.grid_forget()
+                rbns.grid_forget()
+                sub.grid_forget()
+                Label(ff, text= "Thank you!", font=("Calibri", 13)).grid(pady=200)
+                
+                driver=db.driver.find_one({'_id': self.udriver})
+                rides=driver['rides'] + 1
+                newrating= (driver['rating'] + rating)/rides
+                db.driver.update_one({'_id':self.udriver}, {'$set':{'rating':newrating, 'rides':rides}})
+            else:
+                pleaseselect.grid()
         #give rating
         #radio buttons
+        rateride= Label(ff, text= "Rate your ride", font=("Calibri", 13))
+        rateride.grid(pady=100)
+        rate=IntVar()
+        rbns=Frame(ff)
+        for i in range(5):
+            Radiobutton(rbns, text=i+1, variable=rate, value= i+1, command=pleaseselect.grid_forget).grid(row=0, column=i)
+        rbns.grid()
         
+        sub= Button(ff, text="Submit", height="2", width="15", command=submit)
+        sub.grid()
+        ff.grid()
 
         
-sa=UserLogin()
+a=UserLogin()

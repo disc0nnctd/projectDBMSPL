@@ -45,6 +45,6 @@ def loadTypesFromDB():
     typs={j['name']:j['seats'] for j in y}
     return typs
 
-def addDriver(name, password, vehicle, phone, rating, rides):
-    driver.insert_one({"_id":name,"password":password,"vehicle":vehicle,"phone":phone, "rating":rating, "rides":rides})
+def addDriver(name, password, vehicle, phone):
+    driver.insert_one({"_id":name,"password":password,"vehicle":vehicle,"phone":phone, "rating":0, "rides":0})
 
