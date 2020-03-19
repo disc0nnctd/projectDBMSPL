@@ -159,7 +159,7 @@ class UserLogin:
                 else:
                     cannotbeempty.grid()
             def generate():
-                self.maketitle("Login/Register")
+                self.maketitle("User Login/Register")
                 self.title.grid()
                 Label(ff, text="Username", font=("Calibri", 15)).grid(pady=5)
                 userEntry.grid(pady=2)
@@ -463,13 +463,10 @@ class UserLogin:
         sub= Button(ff, text="Submit", height="2", width="15", command=submit)
         sub.grid()
         ff.grid()        
-a=UserLogin()
-window.mainloop()
 
 #----------------------------------------------------Driver Side-----------------------------------------------------
 
-res="450x600"
-window2=Tk()
+window2=Toplevel()
 window2.geometry(res)
 window2.resizable(width=False, height=False)
 window2.title("notUberDriver")
@@ -480,10 +477,10 @@ def nothing():
 
 class DriverLogin:
     def maketitle(self, text):
-        self.title=Label(window, text=text, bg="black", width="38", height="2", fg="white", font=("Calibri", 17))
+        self.title=Label(window2, text=text, bg="black", width="38", height="2", fg="white", font=("Calibri", 17))
     def makeff2(self, title):
         global ff2
-        ff2=Frame(window)
+        ff2=Frame(window2)
         self.maketitle(title)
         self.title.grid()
     def suicide(self):
@@ -532,7 +529,7 @@ class DriverLogin:
                             self.username=uname
                             self.type=dt['type']
                             self.authsuccess=True
-                            #next window
+                            #next window2
                             self.page1()
                         else:
                             invaliduserpass.grid()
@@ -541,7 +538,7 @@ class DriverLogin:
                 else:
                     cannotbeempty.grid()
             def generate():
-                self.maketitle("Login")
+                self.maketitle("Driver Login")
                 self.title.grid()
                 Label(ff2, text="Username", font=("Calibri", 15)).grid(pady=5)
                 userEntry.grid(pady=2)
@@ -618,33 +615,38 @@ class DriverLogin:
         #-------MessageLabels------
         otpwrong=Label(ff2, text="OTP incorrect!", font=("Calibri", 13), fg='red')
         #-------------------------
+        enteredotp=IntVar()
+
+        self.otp=None
+        self.ride=None
         def checkOTP():
-            if(enteredotp.get()==otp):
+            if(enteredotp.get()==self.otp):
                 db.otps.update_one({'_id':self.rideid}, {'$set':{'status':'active'}})
                 self.page3()
             else:
+                print(type(enteredotp.get()))
+                print(enteredotp.get())
                 otpwrong.grid()
         
-        ride=None
-        otp=None
-
-        while not ride:
+        def rideExist():
             try:
                 ride=db.activerides.find_one({'_id':self.rideid})
+                Label(ff2, text="User: %s"%ride['user'], font=("Calibri", 13)).grid(pady=5)
             except:
-                continue
-        while not otp:
+                window.after(1000, rideExist)
+        
+        def otpExist():
             try:
-                otp= db.otps.find_one({'_id':self.rideid})['sotp']
+                self.otp= db.otps.find_one({'_id':self.rideid})['sotp']
+                Label(ff2, text="OTP:", font=("Calibri", 13)).grid(pady=5)
+                ttk.Entry(ff2, textvariable=enteredotp, width=5).grid(pady=5)
+                Button(ff2, text="Submit", height="2", width="15", command=checkOTP).grid()
             except:
-                continue
-        enteredotp=IntVar()
+                window.after(1000, otpExist)
+
+        rideExist()
+        otpExist()
         
-        Label(ff2, text="User: %s"%ride['user'], font=("Calibri", 13)).grid(pady=5)
-        Label(ff2, text="OTP:", font=("Calibri", 13)).grid(pady=5)
-        ttk.Entry(ff2, textvariable=enteredotp, width=5).grid(pady=5)
-        
-        Button(ff2, text="Submit", height="2", width="15", command=checkOTP).grid()
         ff2.grid(pady=100)
     
     def page3(self):
@@ -662,24 +664,34 @@ class DriverLogin:
         #-------MessageLabels------
         otpwrong=Label(ff2, text="OTP incorrect!", font=("Calibri", 13), fg='red')
         #-------------------------
+        enteredotp=IntVar()
+        self.otp=None
+        
         def checkOTP():
-            if(enteredotp.get()==otp):
+            if(enteredotp.get()==self.otp):
                 db.otps.update_one({'_id':self.rideid}, {'$set':{'status':'done'}})
                 self.suicide()
                 self.makeff2("Ride Complete!")
             else:
                 otpwrong.grid()
     
-        otp=None
-        while not otp:
+        def otpExist():
             try:
-                otp= db.otps.find_one({'_id':self.rideid})['rotp']
+                self.otp= db.otps.find_one({'_id':self.rideid})['rotp']
+                Label(ff2, text="OTP:", font=("Calibri", 13)).grid(pady=5)
+                ttk.Entry(ff2, textvariable=enteredotp, width=5).grid(pady=5)
+                Button(ff2, text="Submit", height="2", width="15", command=checkOTP).grid()
             except:
-                continue
-        enteredotp=IntVar()
-        Label(ff2, text="OTP:", font=("Calibri", 13)).grid(pady=5)
-        ttk.Entry(ff2, textvariable=enteredotp, width=5).grid(pady=5)
-        Button(ff2, text="Submit", height="2", width="15", command=checkOTP).grid()
+                window.after(1000, otpExist)
+        otpExist()
+        
         ff2.grid(pady=100)
+
+
+a=UserLogin()
+
 b=DriverLogin()
+
+window.mainloop()
+
 window2.mainloop()
