@@ -633,7 +633,7 @@ class DriverLogin:
                 ride=db.activerides.find_one({'_id':self.rideid})
                 Label(ff2, text="User: %s"%ride['user'], font=("Calibri", 13)).grid(pady=5)
             except:
-                window.after(1000, rideExist)
+                window2.after(1000, rideExist)
         
         def otpExist():
             try:
@@ -642,7 +642,7 @@ class DriverLogin:
                 ttk.Entry(ff2, textvariable=enteredotp, width=5).grid(pady=5)
                 Button(ff2, text="Submit", height="2", width="15", command=checkOTP).grid()
             except:
-                window.after(1000, otpExist)
+                window2.after(1000, otpExist)
 
         rideExist()
         otpExist()
@@ -682,7 +682,7 @@ class DriverLogin:
                 ttk.Entry(ff2, textvariable=enteredotp, width=5).grid(pady=5)
                 Button(ff2, text="Submit", height="2", width="15", command=checkOTP).grid()
             except:
-                window.after(1000, otpExist)
+                window2.after(1000, otpExist)
         otpExist()
         
         ff2.grid(pady=100)
