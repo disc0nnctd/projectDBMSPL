@@ -46,5 +46,5 @@ def loadTypesFromDB():
     return typs
 
 def addDriver(name, password, vehicle, phone):
-    driver.insert_one({"_id":name,"password":password,"vehicle":vehicle,"phone":phone, "rating":0, "rides":0})
+    driver.insert_one({"_id":name,"password":password,"type":vehicle,"phone":phone, "rating":0, "rides":0})
 
