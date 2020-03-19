@@ -186,7 +186,7 @@ class DriverLogin:
         
         Label(ff, text="User: %s"%ride['user'], font=("Calibri", 13)).grid(pady=5)
         Label(ff, text="OTP:", font=("Calibri", 13)).grid(pady=5)
-        ttk.Entry(ff, textvariable=enteredotp, width=10).grid(pady=5)
+        ttk.Entry(ff, textvariable=enteredotp, width=5).grid(pady=5)
         
         Button(ff, text="Submit", height="2", width="15", command=checkOTP).grid()
         ff.grid(pady=100)
@@ -222,7 +222,7 @@ class DriverLogin:
                 continue
         enteredotp=IntVar()
         Label(ff, text="OTP:", font=("Calibri", 13)).grid(pady=5)
-        ttk.Entry(ff, textvariable=enteredotp, width=30).grid(pady=5)
+        ttk.Entry(ff, textvariable=enteredotp, width=5).grid(pady=5)
         Button(ff, text="Submit", height="2", width="15", command=checkOTP).grid()
         ff.grid(pady=100)
 a=DriverLogin()
