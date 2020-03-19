@@ -7,8 +7,6 @@ from random import randint
 from datetime import datetime
 from geopy.distance import great_circle
 
-#great_circle(loc1, loc2).km distance
-
 now=datetime.now()
 
 constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWrites=true&w=majority'
@@ -16,10 +14,8 @@ constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWri
 client = MongoClient(constring)
 db=client.data
 
-#db=client.testing
 loc=db.location
 vehicles=db.vehicle
-#db.user.create_index('phone')
 
 res="450x600"
 window=Tk()

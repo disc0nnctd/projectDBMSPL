@@ -1,3 +1,5 @@
+"""https://github.com/disc0nnctd/projectDBMSPL.git"""
+
 from tkinter import *
 from tkinter import ttk
 from pymongo import MongoClient
@@ -6,11 +8,6 @@ constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWri
 
 client = MongoClient(constring)
 db=client.data
-
-#db=client.testing
-loc=db.location
-vehicles=db.vehicle
-#db.user.create_index('phone')
 
 res="450x600"
 window=Tk()
