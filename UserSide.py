@@ -1,19 +1,10 @@
 """https://github.com/disc0nnctd/projectDBMSPL.git"""
 
-"""pandas can be used to view data from the database
-import pandas as pd
-data = [data for data in db.colletionname.find()]
-df_inventory_data = pd.DataFrame(data)
-print(data)
-"""
-
-
 from tkinter import *
 from tkinter import ttk
 from pymongo import MongoClient
 from random import randint
 from datetime import datetime
-from time import sleep
 from geopy.distance import great_circle
 
 #great_circle(loc1, loc2).km distance
@@ -55,13 +46,11 @@ class UserLogin:
             self.user=StringVar()
             self.pwd=StringVar()
             self.username=''
-            #self.source=''
-            #self.destination=''
             self.authsuccess=False
             self.phone=None
 
-            userEntry=Entry(ff, textvariable=self.user, width=30)
-            passEntry=Entry(ff, textvariable=self.pwd, width=30)
+            userEntry=ttk.Entry(ff, textvariable=self.user, width=30)
+            passEntry=ttk.Entry(ff, textvariable=self.pwd, width=30, show="*")
             loginbutton=Button(ff, text="Login", height="2", width="15")
             regbutton=Button(ff, text="Register", height="2", width="15")
             
@@ -155,10 +144,10 @@ class UserLogin:
                         else:
                             invalidOTP.grid()
                     Label(tempframe, text="OTP", font=("Calibri")).grid(row=0, column=0)
-                    Entry(tempframe, textvariable=otp, width=5).grid(row=0, column=1)
+                    ttk.Entry(tempframe, textvariable=otp, width=5).grid(row=0, column=1)
                     Button(tempframe, text="Submit", command=checkotp).grid(row=0, column=2)
                     Label(tempwin, text="Phone Number", font=("Calibri")).grid(row=0, column=0, padx=5)
-                    Entry(tempwin, textvariable=phn).grid(row=0, column=1)
+                    ttk.Entry(tempwin, textvariable=phn).grid(row=0, column=1)
                     Button(tempwin, text="Get OTP", command=getotp).grid(row=0, column=2)
                 
                 if uname:
@@ -261,11 +250,7 @@ class UserLogin:
             typeoptions.bind("<Button-1>", handle_click) #used to prevent resizing of Treeview columns
             
         def disableTree():
-            vehlabel=Label(ff, text=self.type.get(), font=("Calibri", 13), borderwidth=2, relief="sunken", bg="white")
-            #vehlabel.grid(row=5)
             typeoptions.bind("<<TreeviewSelect>>", lambda _: nothing())  #makes it stop working after submission 
-
-            
             
         def settype():
             getoption=typeoptions.item(typeoptions.focus())['values'][0]
@@ -277,7 +262,7 @@ class UserLogin:
             forgetmessagelabels()
             a=self.src.get()
             b=self.dest.get()
-            if a and b:
+            if "Select one" not in (a, b):
                 if(a==b):
                     locationscantbesame.grid()
                     subbutton.configure(state="disabled")
@@ -332,32 +317,13 @@ class UserLogin:
             self.udriver=None
             self.timeout=120
             driverUpdate()
-                
-                
-        """driversidefunction
-            the driverside's treeview will always keep updating
-            def lookforaride():
-                loggedrides={} #will contain dictionaries identified by
-                now=datetime.now()
-                foundRide=False
-                x=None
-                ridez=[i for i in db.avlrides.find()] #{'from': s, 'to':d, 'time': time, 'date': date, 'type': t, 'user': username, 'driver':''}
-                #display all rides in treeview and ask the driver to pick one
-                #once the driver submits, add his name to the avlride
-                #if the driver picks the ride:
-                # toupdate= ridez[whateverdriverpicks]
-                # driverupdate = { "$set": { "driver": driver's id } }
-                # db.avlrides.update_one(toupdate, driverupdate)
-                #driver is asked to enter OTP(otp is fetched from db.otps.find_one({'_id': pickedride['_id']})['sOTP'] #start otp
-                # if otp is correct : db.activerides.update_one(self.ridedetails, {"$set":{'ridestatus':'active'})
-        """
-        
+            
         def submitButton():
             forgetmessagelabels()
             s=self.src.get()
             d=self.dest.get()
             t=self.type.get()
-            if(s and d):
+            if "Select one" not in (s and d):
                 if(s!=d):
                     if t:
                         disableoptions()
@@ -377,15 +343,15 @@ class UserLogin:
                                                 
         Label(ff, text="Source", font=("Calibri", 13)).grid(pady=5)
     
-        srcmenu = OptionMenu(ff, self.src, *locsavl, command=lambda _:updateprice()) # * unpacks locations list  #lambda _ becuase optionmenu puts an argument in command
+        srcmenu = ttk.OptionMenu(ff, self.src, "Select one", *locsavl, command=lambda _:updateprice()) # * unpacks locations list  #lambda _ becuase optionmenu puts an argument in command
         srcmenu.grid()
         
         Label(ff, text="Destination", font=("Calibri", 13)).grid(pady=5)
-        destmenu=OptionMenu(ff, self.dest, *locsavl, command=lambda _:updateprice()) #lambda _ becuase optionmenu puts an argument in command
+        destmenu=ttk.OptionMenu(ff, self.dest, "Select one", *locsavl, command=lambda _:updateprice()) #lambda _ becuase optionmenu puts an argument in command
         destmenu.grid()
 
         Label(ff, text="Vehicle:", font=("Calibri", 13)).grid(pady=5)
-        ###################TreeView###############################################        
+
         typeoptions=ttk.Treeview(ff, columns=("Type", "Seats"), show="headings", height=5)
         typeoptions.heading('#1', text='Type')
         typeoptions.heading('#2', text='Seats')
@@ -395,13 +361,13 @@ class UserLogin:
             typeoptions.insert("", 'end', values=(i, types[i]))
         enableTree()
         typeoptions.grid()
-        ###########################################################################
+
 
         Label(ff, text="Distance(KM)", font=("Calibri", 13)).grid(pady=5)
-        distancebox=Label(ff, textvariable=self.dist, width=5, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
+        distancebox=Label(ff, textvariable=self.dist, width=6, borderwidth=2, relief="sunken").grid(pady=5)
 
         Label(ff, text="Price(Rupees)", font=("Calibri", 13)).grid(pady=5)
-        pricebox=Label(ff, textvariable=self.price, width=5, borderwidth=2, relief="sunken", bg="white").grid(pady=5)
+        pricebox=Label(ff, textvariable=self.price, width=6, borderwidth=2, relief="sunken").grid(pady=5)
 
         subbutton=Button(ff, text="Submit", command=submitButton)
         
@@ -500,3 +466,4 @@ class UserLogin:
 
         
 a=UserLogin()
+window.mainloop()
