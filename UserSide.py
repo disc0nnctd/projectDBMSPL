@@ -447,9 +447,11 @@ class UserLogin:
                 db.driver.update_one({'_id':self.udriver}, {'$set':{'rating':newrating, 'rides':rides}})
 
                 db.activerides.delete_one({'_id': self.rideid})
+                db.otps.delete_one({'id': self.rideid})     #otps are not useful once the ride is complete
 
                 db.pastrides.insert_one(self.ridedetails)
                 db.pastrides.update_one(self.ridedetails, {"$set": {'driver': self.udriver, 'rating': rating}})
+                
             else:
                 pleaseselect.grid()
         
