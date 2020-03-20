@@ -1,5 +1,16 @@
 """https://github.com/disc0nnctd/projectDBMSPL.git"""
 
+"""
+Since each driver has a specific type of vehicle,
+the rides available only for him will be loaded.
+for eg.
+admin(password: notadming) requests Sedan
+driver1(password: 1234) drives Sedan
+
+so only Sedan rides will be loaded for the driver, ie. admin
+"""
+
+
 from tkinter import *
 from tkinter import ttk
 from pymongo import MongoClient
@@ -109,6 +120,11 @@ class UserLogin:
                     invalidOTP=Label(tempwin, text="Invalid OTP!", fg="red")
                     #---MessageLabels----
                     otp=StringVar()
+                    def OTPsize(*args): #keeps size limit of OTP entry
+                        value = otp.get()
+                        if len(value) > 4: otp.set(value[:4])
+                    otp.trace('w', OTPsize)
+                    
                     phn=StringVar()
                     self.totp=0
                     tempframe=Frame(tempwin)
@@ -551,7 +567,8 @@ class DriverLogin:
     def page1(self):
         self.suicide()
         self.makeff2("Welcome %s!"%self.user.get())
-        Label(ff2, text="Select a ride:", font=("Calibri", 15)).grid(pady=5)
+        Label(ff2, text="You drive a %s."%self.type, font=("Calibri", 15)).grid(pady=5)
+        Label(ff2, text="Available rides:", font=("Calibri", 15)).grid(pady=5)
         #--------MessageLabels--------------
         noridesfound=Label(ff2, text="No rides found!")
         #----------------------------
@@ -615,17 +632,20 @@ class DriverLogin:
         #-------MessageLabels------
         otpwrong=Label(ff2, text="OTP incorrect!", font=("Calibri", 13), fg='red')
         #-------------------------
-        enteredotp=IntVar()
-
+        enteredotp=StringVar()
         self.otp=None
         self.ride=None
+        
+        def OTPsize(*args): #keeps size limit of OTP entry
+            value = enteredotp.get()
+            if len(value) > 4: enteredotp.set(value[:4])
+        enteredotp.trace('w', OTPsize)
+        
         def checkOTP():
-            if(enteredotp.get()==self.otp):
+            if(enteredotp.get()==str(self.otp)):
                 db.otps.update_one({'_id':self.rideid}, {'$set':{'status':'active'}})
                 self.page3()
             else:
-                print(type(enteredotp.get()))
-                print(enteredotp.get())
                 otpwrong.grid()
         
         def rideExist():
@@ -664,11 +684,16 @@ class DriverLogin:
         #-------MessageLabels------
         otpwrong=Label(ff2, text="OTP incorrect!", font=("Calibri", 13), fg='red')
         #-------------------------
-        enteredotp=IntVar()
+        enteredotp=StringVar()
         self.otp=None
         
+        def OTPsize(*args): #keeps size limit of OTP entry
+            value = enteredotp.get()
+            if len(value) > 4: enteredotp.set(value[:4])
+        enteredotp.trace('w', OTPsize)
+        
         def checkOTP():
-            if(enteredotp.get()==self.otp):
+            if(enteredotp.get()==str(self.otp)):
                 db.otps.update_one({'_id':self.rideid}, {'$set':{'status':'done'}})
                 self.suicide()
                 self.makeff2("Ride Complete!")

@@ -163,8 +163,14 @@ class DriverLogin:
 
         self.otp=None
         self.ride=None
+
+        def OTPsize(*args): #keeps size limit of OTP entry
+            value = enteredotp.get()
+            if len(value) > 4: enteredotp.set(value[:4])
+        enteredotp.trace('w', OTPsize)
+        
         def checkOTP():
-            if(enteredotp.get()==self.otp):
+            if(enteredotp.get()==str(self.otp)):
                 db.otps.update_one({'_id':self.rideid}, {'$set':{'status':'active'}})
                 self.page3()
             else:
@@ -208,11 +214,16 @@ class DriverLogin:
         #-------MessageLabels------
         otpwrong=Label(ff2, text="OTP incorrect!", font=("Calibri", 13), fg='red')
         #-------------------------
-        enteredotp=IntVar()
+        enteredotp=StringVar()
         self.otp=None
         
+        def OTPsize(*args): #keeps size limit of OTP entry
+            value = enteredotp.get()
+            if len(value) > 4: enteredotp.set(value[:4])
+        enteredotp.trace('w', OTPsize)
+        
         def checkOTP():
-            if(enteredotp.get()==self.otp):
+            if(enteredotp.get()==str(self.otp)):
                 db.otps.update_one({'_id':self.rideid}, {'$set':{'status':'done'}})
                 self.suicide()
                 self.makeff2("Ride Complete!")

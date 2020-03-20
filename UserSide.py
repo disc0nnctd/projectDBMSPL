@@ -105,6 +105,11 @@ class UserLogin:
                     invalidOTP=Label(tempwin, text="Invalid OTP!", fg="red")
                     #---MessageLabels----
                     otp=StringVar()
+                    def OTPsize(*args): #keeps size limit of OTP entry
+                        value = otp.get()
+                        if len(value) > 4: otp.set(value[:4])
+                    otp.trace('w', OTPsize)
+                    
                     phn=StringVar()
                     self.totp=0
                     tempframe=Frame(tempwin)
