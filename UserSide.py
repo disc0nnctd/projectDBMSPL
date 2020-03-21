@@ -234,13 +234,13 @@ class UserLogin:
             return locations
 
         def readTypeFromDB(name):
-            tmp=vehicles.find_one({"name":name}, {'price':1, "_id":0}) #get "price" count from given name, exclude "_id"
+            tmp=vehicles.find_one({"_id":name}, {'price':1}) #get "price" count from given name, exclude "_id"
             t=tmp['price']
             return t
         
         def loadTypesFromDB():
-            y=vehicles.find({}, {"name":1,"seats":1, "_id":0}) #get all "name", "seats" from collection, exclude "_id"
-            typs={j['name']:j['seats'] for j in y}
+            y=vehicles.find({}, {"_id":1,"seats":1}) #get all "name", "seats" from collection, exclude "_id"
+            typs={j['_id']:j['seats'] for j in y}
             return typs
 
         def handle_click(event):                                             

@@ -37,8 +37,8 @@ def loadLocsFromDB():
     return locations
 
 #   vehicl.create_index('name')
-def writeType(name, seats, price):
-    vehicl.insert_one({"name":name, "seats":seats, "price":price})
+def writeType(name, seats, price=10):
+    vehicl.insert_one({"_id":name, "seats":seats, "price":price})
 
 def loadTypesFromDB():
     y=vehicl.find({}, {"name":1,"seats":1, "_id":0}) #get all "name", "seats" from collection, exclude "_id"
