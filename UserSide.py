@@ -418,8 +418,6 @@ class UserLogin:
         Label(ff, text="Contact: %s"%driver['phone'], font=("Calibri", 13)).grid(pady=5)
 
         sotp=randint(1000, 9999)
-        #db.activerides.update_one(self.ridedetails, {"$set":{'sotp':sotp}})
-        
         db.otps.insert_one({'_id':self.rideid, 'sotp':sotp, 'status':'otp'})  #status will be set by driver side, 'done' when driver presses button that the ride is done
         ot=Label(ff, text="Start OTP: %s"%sotp, font=("Calibri", 13))
         ot.grid(pady=5)

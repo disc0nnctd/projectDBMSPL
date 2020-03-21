@@ -98,12 +98,12 @@ class DriverLogin:
         Label(ff2, text="Select a ride:", font=("Calibri", 15)).grid(pady=5)
         #--------MessageLabels--------------
         noridesfound=Label(ff2, text="No rides found!")
+        alreadytaken=Label(ff2, text="Ride is already taken! Please find another one.")
         #----------------------------
 
         def forgetmessages():
             noridesfound.grid_forget()
-            
-       
+            alreadytaken.grid_forget()
             
         def handle_click(event):                                             
             if avlrides.identify_region(event.x, event.y) == "separator": #used to prevent resizing of Treeview columns
@@ -115,22 +115,29 @@ class DriverLogin:
 
         def fetchrides():
             avlrides.delete(*avlrides.get_children())
-            noridesfound.grid_forget()
+            forgetmessages()
             try:
-                fetchedrides=[i for i in db.avlrides.find({'type':self.type, 'driver':''})] #{'type':self.type}
-                for j in fetchedrides:
-                    avlrides.insert("", 'end', values=(j['_id'], j['from'], j['to'], j['time'], j['user']))
+                fetchedrides=[i for i in db.avlrides.find({'type':self.type, 'driver':''})]
+                if fetchedrides:
+                    for j in fetchedrides:
+                        avlrides.insert("", 'end', values=(j['_id'], j['from'], j['to'], j['time'], j['user']))
+                    submitbutton.configure(state='normal')
+                else:
+                    raise Exception
             except:
                 noridesfound.grid()
 
         def getride():
             disableTree()
             self.rideid=avlrides.item(avlrides.focus())['values'][0]
-            db.avlrides.update_one({'_id': self.rideid}, {"$set":{'driver':self.username}})
-
-            self.page2()           
-
-
+            if (db.avlrides.find_one({'_id':self.rideid})['driver']==''):  # Making sure that the ride is not taken already
+                db.avlrides.update_one({'_id': self.rideid}, {"$set":{'driver':self.username}})
+                self.page2()
+            else:
+                submitbutton.configure(state='disabled')
+                self.rideid=None
+                fetchrides()
+                alreadytaken.grid()
 
         details=["ID", "From", "To", "Time", "Username"]
         
@@ -149,7 +156,7 @@ class DriverLogin:
 
         submitbutton=Button(ff2, text="Submit", height="2", width="15", command=getride)
         submitbutton.grid(pady=5)
-        
+        submitbutton.configure(state='disabled')
         fetchrides()
         ff2.grid(pady=50)
     def page2(self):
@@ -174,8 +181,6 @@ class DriverLogin:
                 db.otps.update_one({'_id':self.rideid}, {'$set':{'status':'active'}})
                 self.page3()
             else:
-                print(type(enteredotp.get()))
-                print(enteredotp.get())
                 otpwrong.grid()
         
         def rideExist():
