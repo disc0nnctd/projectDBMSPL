@@ -431,6 +431,8 @@ class UserLogin:
         
         Label(ff, text="Driver ID: %s"%driver['_id'], font=("Calibri", 13)).grid(pady=100)
         Label(ff, text="Contact: %s"%driver['phone'], font=("Calibri", 13)).grid(pady=5)
+        Label(ff, text="Rating: %s"%driver['rating'], font=("Calibri", 13)).grid(pady=5)
+        Label(ff, text="Rides Completed: %s"%driver['rides'], font=("Calibri", 13)).grid(pady=5)
 
         sotp=randint(1000, 9999)
         db.otps.insert_one({'_id':self.rideid, 'sotp':sotp, 'status':'otp'})  #status will be set by driver side, 'done' when driver presses button that the ride is done
