@@ -95,6 +95,7 @@ class DriverLogin:
     def page1(self):
         self.suicide()
         self.makeff2("Welcome %s!"%self.user.get())
+        Label(ff2, text="Your vehicle: %s."%self.type, font=("Calibri", 15)).grid(pady=5)
         Label(ff2, text="Select a ride:", font=("Calibri", 15)).grid(pady=5)
         #--------MessageLabels--------------
         noridesfound=Label(ff2, text="No rides found!")

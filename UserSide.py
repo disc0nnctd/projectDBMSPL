@@ -251,8 +251,10 @@ class UserLogin:
             typeoptions.bind("<Button-1>", handle_click) #used to prevent resizing of Treeview columns
             
         def disableTree():
+            Label(ff, text=self.type.get(), font=("Calibri", 13), borderwidth=2, relief="sunken", bg="white").grid(row=5)
             typeoptions.bind("<<TreeviewSelect>>", lambda _: nothing())  #makes it stop working after submission 
-            
+            typeoptions.destroy()
+
         def settype():
             getoption=typeoptions.item(typeoptions.focus())['values'][0]
             #print(getoption)
@@ -416,9 +418,9 @@ class UserLogin:
         
         Label(ff, text="Driver ID: %s"%driver['_id'], font=("Calibri", 13)).grid(pady=100)
         Label(ff, text="Contact: %s"%driver['phone'], font=("Calibri", 13)).grid(pady=5)
-        Label(ff, text="Rating: %s"%driver['rating'], font=("Calibri", 13)).grid(pady=5)
+        Label(ff, text="Rating: %.1f"%driver['rating'], font=("Calibri", 13)).grid(pady=5)
         Label(ff, text="Rides Completed: %s"%driver['rides'], font=("Calibri", 13)).grid(pady=5)
-        
+
         sotp=randint(1000, 9999)
         db.otps.insert_one({'_id':self.rideid, 'sotp':sotp, 'status':'otp'})  #status will be set by driver side, 'done' when driver presses button that the ride is done
         ot=Label(ff, text="Start OTP: %s"%sotp, font=("Calibri", 13))
@@ -431,7 +433,9 @@ class UserLogin:
         self.suicide()
         self.makeff("Ride Complete")
         pleaseselect=Label(ff, text= "Please select a rating!", font=("Calibri", 13))
-        
+        driver=db.driver.find_one({'_id': self.udriver})
+        rides=driver['rides'] + 1
+        db.driver.update_one({'_id':self.udriver}, {'$set':{'rides':rides}})
         def submit():
             rating=rate.get()
             if rating != 0:
@@ -440,18 +444,13 @@ class UserLogin:
                 rbns.grid_forget()
                 sub.grid_forget()
                 Label(ff, text= "Thank you!", font=("Calibri", 13)).grid(pady=200)
-                
-                driver=db.driver.find_one({'_id': self.udriver})
-                rides=driver['rides'] + 1
-                newrating= (driver['rating'] + rating)/rides
-                db.driver.update_one({'_id':self.udriver}, {'$set':{'rating':newrating, 'rides':rides}})
 
+                newrating= (driver['rating'] + rating)/2
+                db.driver.update_one({'_id':self.udriver}, {'$set':{'rating':newrating}})
+                
                 db.activerides.delete_one({'_id': self.rideid})
                 db.otps.delete_one({'id': self.rideid})     #otps are not useful once the ride is complete
-
-                db.pastrides.insert_one(self.ridedetails)
-                db.pastrides.update_one(self.ridedetails, {"$set": {'driver': self.udriver, 'rating': rating}})
-                
+                db.pastrides.update_one(self.ridedetails, {"$set": {'rating': rating}})
             else:
                 pleaseselect.grid()
         
@@ -464,8 +463,15 @@ class UserLogin:
         rbns.grid()
         
         sub= Button(ff, text="Submit", height="2", width="15", command=submit)
+
+                
+        db.activerides.delete_one({'_id': self.rideid})
+        db.otps.delete_one({'id': self.rideid})     #otps are not useful once the ride is complete
+                
+        db.pastrides.insert_one(self.ridedetails)
+        db.pastrides.update_one(self.ridedetails, {"$set": {'driver': self.udriver}})
         sub.grid()
-        ff.grid()
+        ff.grid()    
 
         
 a=UserLogin()
