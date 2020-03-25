@@ -112,7 +112,7 @@ class DriverLogin:
         def enableTree():
             avlrides.bind("<Button-1>", handle_click) #used to prevent resizing of Treeview columns
         def disableTree():
-            avlrides.bind("<<TreeviewSelect>>", lambda _: nothing())  #makes it stop working after submission 
+            avlrides.bind("<<TreeviewSelect>>", lambda _: nothing())  #makes it stop working after submission, not actually useful in this code
 
         def fetchrides():
             avlrides.delete(*avlrides.get_children())
@@ -233,6 +233,9 @@ class DriverLogin:
                 db.otps.update_one({'_id':self.rideid}, {'$set':{'status':'done'}})
                 self.suicide()
                 self.makeff2("Ride Complete!")
+                charges= db.activerides.find_one({'_id': self.rideid})['charges']
+                Label(ff2, text="Amount: %.1f"%charges, font=("Calibri", 13)).grid(pady=100)
+                ff2.grid()
             else:
                 otpwrong.grid()
     

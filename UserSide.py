@@ -299,7 +299,6 @@ class UserLogin:
             else:
                 if self.timeout>0:
                     self.timeout-=1
-                    #print(self.timeout)
                     window.after(1000, driverUpdate)
                 else:
                     forgetmessagelabels()
@@ -314,7 +313,7 @@ class UserLogin:
             time=now.strftime("%H:%M:%S")
             foundRide=False
             self.rideid= genID()
-            self.ridedetails={'_id':self.rideid, 'from': s, 'to':d, 'time': time, 'date': date, 'type': t, 'user': self.username}
+            self.ridedetails={'_id':self.rideid, 'from': s, 'to':d, 'time': time, 'date': date, 'type': t, 'user': self.username, 'charges': self.price.get()}
             db.avlrides.insert_one(self.ridedetails)
             db.avlrides.update_one(self.ridedetails, {"$set": {'driver':''}})
             self.udriver=None
@@ -391,13 +390,12 @@ class UserLogin:
             status=db.otps.find_one(self.rideid)['status']
             if status=='end':
                 rotp=randint(1000, 9999)
-                Label(ff, text="End OTP: %s"%rotp, font=("Calibri", 13)).grid(pady=5)
                 db.otps.update_one({'_id':self.rideid}, {"$set":{'rotp':rotp}})
+                Label(ff, text="End OTP: %s"%rotp, font=("Calibri", 13), relief= SUNKEN).grid(pady=5)
                 activeride.grid_forget()
                 endRide()
                 return
             window.after(1000, checkComplete)
-                    
         def endRide():
             status=db.otps.find_one(self.rideid)['status']
             if status=='done':
@@ -423,12 +421,10 @@ class UserLogin:
 
         sotp=randint(1000, 9999)
         db.otps.insert_one({'_id':self.rideid, 'sotp':sotp, 'status':'otp'})  #status will be set by driver side, 'done' when driver presses button that the ride is done
-        ot=Label(ff, text="Start OTP: %s"%sotp, font=("Calibri", 13))
+        ot=Label(ff, text="Start OTP: %s"%sotp, font=("Calibri", 13), relief= SUNKEN)
         ot.grid(pady=5)
         ff.grid()
-        activateRide()
-        #checkComplete()
-        #driver side will delete the ride from active and move it to pastrides
+        activateRide()  
     def page3(self):
         self.suicide()
         self.makeff("Ride Complete")

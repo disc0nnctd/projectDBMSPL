@@ -18,7 +18,7 @@ from random import randint
 from datetime import datetime
 from geopy.distance import great_circle
 
-#great_circle(loc1, loc2).km distance
+
 
 now=datetime.now()
 
@@ -27,10 +27,9 @@ constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWri
 client = MongoClient(constring)
 db=client.data
 
-#db=client.testing
 loc=db.location
 vehicles=db.vehicle
-#db.user.create_index('phone')
+
 
 res="450x600"
 window=Tk()
@@ -225,7 +224,6 @@ class UserLogin:
             destmenu.configure(state="disabled")
             subbutton.configure(state="disabled")
             disableTree()
-            #vehmenu.configure(state="disabled")
         def enableoptions():
             srcmenu.configure(state="normal")
             destmenu.configure(state="normal")
@@ -328,7 +326,7 @@ class UserLogin:
             time=now.strftime("%H:%M:%S")
             foundRide=False
             self.rideid= genID()
-            self.ridedetails={'_id':self.rideid, 'from': s, 'to':d, 'time': time, 'date': date, 'type': t, 'user': self.username}
+            self.ridedetails={'_id':self.rideid, 'from': s, 'to':d, 'time': time, 'date': date, 'type': t, 'user': self.username, 'charges': self.price.get()}
             db.avlrides.insert_one(self.ridedetails)
             db.avlrides.update_one(self.ridedetails, {"$set": {'driver':''}})
             self.udriver=None
@@ -405,7 +403,7 @@ class UserLogin:
             status=db.otps.find_one(self.rideid)['status']
             if status=='end':
                 rotp=randint(1000, 9999)
-                Label(ff, text="End OTP: %s"%rotp, font=("Calibri", 13)).grid(pady=5)
+                Label(ff, text="End OTP: %s"%rotp, font=("Calibri", 13), relief= SUNKEN).grid(pady=5)
                 db.otps.update_one({'_id':self.rideid}, {"$set":{'rotp':rotp}})
                 activeride.grid_forget()
                 endRide()
@@ -437,7 +435,7 @@ class UserLogin:
 
         sotp=randint(1000, 9999)
         db.otps.insert_one({'_id':self.rideid, 'sotp':sotp, 'status':'otp'})  #status will be set by driver side, 'done' when driver presses button that the ride is done
-        ot=Label(ff, text="Start OTP: %s"%sotp, font=("Calibri", 13))
+        ot=Label(ff, text="Start OTP: %s"%sotp, font=("Calibri", 13), relief= SUNKEN)
         ot.grid(pady=5)
         ff.grid()
         activateRide()
@@ -709,6 +707,9 @@ class DriverLogin:
                 db.otps.update_one({'_id':self.rideid}, {'$set':{'status':'done'}})
                 self.suicide()
                 self.makeff2("Ride Complete!")
+                charges= db.activerides.find_one({'_id': self.rideid})['charges']
+                Label(ff2, text="Amount: %.1f"%charges, font=("Calibri", 13)).grid(pady=100)
+                ff2.grid()
             else:
                 otpwrong.grid()
     
