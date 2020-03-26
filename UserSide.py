@@ -210,7 +210,6 @@ class UserLogin:
             destmenu.configure(state="disabled")
             subbutton.configure(state="disabled")
             disableTree()
-            #vehmenu.configure(state="disabled")
         def enableoptions():
             srcmenu.configure(state="normal")
             destmenu.configure(state="normal")
@@ -219,7 +218,6 @@ class UserLogin:
         def getDistance(a,b):
             la = readLocFromDB(a)
             lb = readLocFromDB(b)
-            #print("distance is %.01f km"%great_circle(la, lb).km)
             return great_circle(la, lb).km
             
         def readLocFromDB(name):
