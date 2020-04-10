@@ -4,7 +4,7 @@ from geopy.distance import great_circle
 #great_circle(loc1, loc2).km distance
 
 
-constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWrites=true&w=majority'
+constring='' #mongodb connection string
 client=MongoClient(constring)
 loc=client.data.location
 vehicl=client.data.vehicle
