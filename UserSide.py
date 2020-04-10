@@ -9,7 +9,7 @@ from geopy.distance import great_circle
 
 now=datetime.now()
 
-constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWrites=true&w=majority'
+constring='' #mongodb connection string
 
 client = MongoClient(constring)
 db=client.data
