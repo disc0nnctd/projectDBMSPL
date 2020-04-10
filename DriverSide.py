@@ -4,7 +4,7 @@ from tkinter import *
 from tkinter import ttk
 from pymongo import MongoClient
 
-constring='mongodb+srv://disc0nnctd:dc123@dbmspl-e3fyk.mongodb.net/test?retryWrites=true&w=majority'
+constring='' #mongodb connection string
 
 client = MongoClient(constring)
 db=client.data
